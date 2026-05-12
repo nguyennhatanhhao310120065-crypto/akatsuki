@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.judgeTool.controller.ProblemInputController" fitToWidth="true">
+    <VBox spacing="10">
+        <padding>
+            <Insets top="12" right="12" bottom="12" left="12"/>
+        </padding>
+        <Label styleClass="title" text="Nhập / phân tích đề"/>
+        <TextArea fx:id="rawStatement" promptText="Dán nội dung đề vào đây..." prefRowCount="8" wrapText="true"/>
+        <HBox spacing="8">
+            <Button text="Chọn file ảnh (OCR)" onAction="#pickImage"/>
+            <Label text="Loại kỳ thi"/>
+            <ComboBox fx:id="contestCombo" prefWidth="120"/>
+            <Label text="Time limit (ms)"/>
+            <TextField fx:id="timeLimit" prefWidth="90" text="1000"/>
+            <Label text="Memory (MB)"/>
+            <TextField fx:id="memoryLimit" prefWidth="70" text="256"/>
+        </HBox>
+        <HBox spacing="8" alignment="CENTER_LEFT">
+            <Button text="Phân tích bằng AI" onAction="#analyzeAi"/>
+            <Button text="Lưu vào CSDL" onAction="#saveDb"/>
+            <ProgressIndicator fx:id="aiProgress" visible="false" prefWidth="28" prefHeight="28"/>
+        </HBox>
+        <Separator/>
+        <Label text="Preview"/>
+        <GridPane hgap="8" vgap="6">
+            <Label text="Tiêu đề" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <TextField fx:id="previewTitle" GridPane.rowIndex="0" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+            <Label text="Ràng buộc" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <TextArea fx:id="previewConstraints" prefRowCount="3" wrapText="true" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+            <Label text="Input format" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+            <TextArea fx:id="previewIn" prefRowCount="3" wrapText="true" GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+            <Label text="Output format" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <TextArea fx:id="previewOut" prefRowCount="3" wrapText="true" GridPane.rowIndex="3" GridPane.columnIndex="1" GridPane.columnSpan="3"/>
+        </GridPane>
+    </VBox>
+</ScrollPane>

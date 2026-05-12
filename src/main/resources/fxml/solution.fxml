@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.judgeTool.controller.SolutionController">
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+    <top>
+        <VBox spacing="8">
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Đề"/>
+                <ComboBox fx:id="problemCombo" prefWidth="280"/>
+                <Label text="Ngôn ngữ"/>
+                <ComboBox fx:id="langCombo" prefWidth="120"/>
+                <Label text="Kỳ vọng verdict"/>
+                <ComboBox fx:id="expectCombo" prefWidth="100"/>
+            </HBox>
+            <TextArea fx:id="codeArea" promptText="Dán code mẫu (stdin/stdout)..." prefRowCount="10" wrapText="true"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Button text="Chạy tất cả testcase" onAction="#runAll"/>
+                <Button text="Sinh code AC bằng AI" onAction="#genAc"/>
+                <ProgressBar fx:id="progressBar" prefWidth="220" visible="false"/>
+                <ProgressIndicator fx:id="aiProgress" visible="false" prefWidth="28" prefHeight="28"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <TableView fx:id="resultTable">
+            <columns>
+                <TableColumn fx:id="colTc" text="Testcase" prefWidth="70"/>
+                <TableColumn fx:id="colVer" text="Verdict" prefWidth="70"/>
+                <TableColumn fx:id="colTime" text="Time (ms)" prefWidth="80"/>
+                <TableColumn fx:id="colOut" text="Output (rút gọn)" prefWidth="400"/>
+            </columns>
+        </TableView>
+    </center>
+</BorderPane>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.judgeTool.controller.ProblemController" spacing="10">
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Lọc loại kỳ thi:"/>
+        <ComboBox fx:id="filterContest" prefWidth="160"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="Làm mới" onAction="#refresh"/>
+        <Button text="Thêm mới" onAction="#addNew"/>
+        <Button text="Sửa" onAction="#edit"/>
+        <Button text="Xóa" onAction="#delete"/>
+        <Button text="Xem chi tiết" onAction="#detail"/>
+    </HBox>
+    <TableView fx:id="table" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+            <TableColumn fx:id="colTitle" text="Tiêu đề" prefWidth="260"/>
+            <TableColumn fx:id="colType" text="Loại" prefWidth="80"/>
+            <TableColumn fx:id="colTime" text="TL (ms)" prefWidth="70"/>
+            <TableColumn fx:id="colMem" text="Mem (MB)" prefWidth="90"/>
+        </columns>
+    </TableView>
+</VBox>

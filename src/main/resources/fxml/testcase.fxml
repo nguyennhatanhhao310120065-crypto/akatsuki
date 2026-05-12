@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.judgeTool.controller.TestcaseController">
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+    <top>
+        <VBox spacing="8">
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label text="Đề"/>
+                <ComboBox fx:id="problemCombo" prefWidth="320"/>
+                <Label text="Số testcase"/>
+                <Spinner fx:id="countSpinner" prefWidth="90" editable="true"/>
+                <CheckBox fx:id="chkEdge" text="Edge cases" selected="true"/>
+                <CheckBox fx:id="chkStress" text="Stress tests" selected="true"/>
+            </HBox>
+            <TextArea fx:id="extraReq" promptText="Yêu cầu bổ sung cho AI..." prefRowCount="2" wrapText="true"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Button text="Sinh testcase bằng AI" onAction="#generateAi"/>
+                <Button text="Thêm tay" onAction="#addManual"/>
+                <Button text="Sửa" onAction="#edit"/>
+                <Button text="Xóa" onAction="#delete"/>
+                <Button text="Export to files" onAction="#exportFiles"/>
+                <ProgressIndicator fx:id="aiProgress" visible="false" prefWidth="28" prefHeight="28"/>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <SplitPane dividerPositions="0.55" BorderPane.alignment="CENTER">
+            <TableView fx:id="table">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
+                    <TableColumn fx:id="colType" text="Loại" prefWidth="90"/>
+                    <TableColumn fx:id="colEdge" text="Edge" prefWidth="50"/>
+                    <TableColumn fx:id="colInPreview" text="Input (xem nhanh)" prefWidth="220"/>
+                </columns>
+            </TableView>
+            <TextArea fx:id="detailArea" promptText="Chọn một testcase để xem input/output đầy đủ" wrapText="true"/>
+        </SplitPane>
+    </center>
+</BorderPane>
