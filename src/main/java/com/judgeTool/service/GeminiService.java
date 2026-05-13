@@ -213,13 +213,15 @@ public class GeminiService {
         String prompt = """
                 Write a checker for this competitive programming problem.
                 The checker receives three arguments: input_file, expected_output_file, contestant_output_file.
-                Language: Python 3.
+                Language: Java.
+                The class MUST be named `Checker` and contain `public static void main(String[] args)`.
+                Exit with code 0 if the contestant output is correct, otherwise exit with a non-zero code.
 
                 Problem:
                 %s
                 Output format: %s
 
-                Return ONLY the complete checker code, no explanation, no markdown.
+                Return ONLY the complete compilable Java code, no explanation, no markdown.
                 """.formatted(
                 fmtSafe(StringUtil.nullSafe(problem.getStatement())),
                 fmtSafe(StringUtil.nullSafe(problem.getOutputFormat())));

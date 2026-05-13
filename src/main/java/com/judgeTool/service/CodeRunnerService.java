@@ -71,7 +71,7 @@ public class CodeRunnerService {
                 boolean ok;
                 if (useChecker && checkerOrNull != null
                         && "special_judge".equalsIgnoreCase(checkerOrNull.getCheckerType())) {
-                    ok = runPythonChecker(work, checkerOrNull, testcase, out);
+                    ok = runJavaChecker(work, checkerOrNull, testcase, out);
                 } else {
                     ok = checkOutput(out, testcase.getExpectedOutput());
                 }
@@ -93,7 +93,7 @@ public class CodeRunnerService {
         Path work = Files.createTempDirectory("chk_" + UUID.randomUUID());
         try {
             String out = tc.getExpectedOutput() != null ? tc.getExpectedOutput() : "";
-            return runPythonChecker(work, checker, tc, out);
+            return runJavaChecker(work, checker, tc, out);
         } finally {
             deleteRecursive(work);
         }
@@ -145,10 +145,10 @@ public class CodeRunnerService {
         }
     }
 
-    private boolean runPythonChecker(Path work, Checker checker, Testcase tc, String contestantOut)
+    private boolean runJavaChecker(Path work, Checker checker, Testcase tc, String contestantOut)
             throws IOException, InterruptedException {
-        Path checkerPy = work.resolve("checker.py");
-        FileUtil.writeText(checkerPy, checker.getCheckerCode());
+        Path checkerJava = work.resolve("Checker.java");
+        FileUtil.writeText(checkerJava, checker.getCheckerCode());
         Path inFile = work.resolve("input.txt");
         Path expFile = work.resolve("expected.txt");
         Path outFile = work.resolve("contestant.txt");
@@ -156,7 +156,11 @@ public class CodeRunnerService {
         FileUtil.writeText(expFile, tc.getExpectedOutput() != null ? tc.getExpectedOutput() : "");
         FileUtil.writeText(outFile, contestantOut != null ? contestantOut : "");
 
-        ProcessBuilder pb = new ProcessBuilder("python", checkerPy.toAbsolutePath().toString(),
+        if (!compile(work, "javac", "-encoding", "UTF-8", "Checker.java")) {
+            return false;
+        }
+
+        ProcessBuilder pb = new ProcessBuilder("java", "Checker",
                 inFile.toAbsolutePath().toString(),
                 expFile.toAbsolutePath().toString(),
                 outFile.toAbsolutePath().toString());

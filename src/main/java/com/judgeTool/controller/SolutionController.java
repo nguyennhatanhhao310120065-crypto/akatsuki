@@ -58,7 +58,7 @@ public class SolutionController {
 
     @FXML
     public void initialize() {
-        langCombo.setItems(FXCollections.observableArrayList(LANG_JAVA, LANG_CPP, LANG_PYTHON));
+        langCombo.setItems(FXCollections.observableArrayList(LANG_JAVA, LANG_CPP));
         langCombo.getSelectionModel().select(LANG_CPP);
         expectCombo.setItems(FXCollections.observableArrayList(
                 Verdict.AC, Verdict.WA, Verdict.TLE, Verdict.RE, Verdict.UNKNOWN));
