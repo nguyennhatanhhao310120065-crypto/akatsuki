@@ -3,14 +3,21 @@ package com.judgeTool.service;
 import java.nio.file.Path;
 
 /**
- * OCR qua tess4j là tuỳ chọn theo spec (dependency thường bị comment).
- * Triển khai: hướng dẫn người dùng bật tess4j hoặc dán text thủ công.
+ * OCR sử dụng Gemini Vision (Gemini 2.5 Flash hỗ trợ ảnh native).
+ * Không cần cài Tesseract / tess4j.
  */
 public class OcrService {
 
+    private final GeminiService gemini;
+
+    public OcrService(GeminiService gemini) {
+        this.gemini = gemini;
+    }
+
     public String extractTextFromImage(Path imagePath) throws Exception {
-        throw new UnsupportedOperationException(
-                "OCR chưa bật: thêm dependency tess4j vào pom.xml, cài Tesseract OCR và cấu hình TESSDATA_PREFIX, "
-                        + "hoặc dán nội dung đề vào ô text. File: " + imagePath);
+        if (gemini == null) {
+            throw new IllegalStateException("GeminiService chưa được khởi tạo.");
+        }
+        return gemini.extractTextFromImage(imagePath);
     }
 }

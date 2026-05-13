@@ -12,17 +12,6 @@ public class JudgeResult {
     public JudgeResult() {
     }
 
-    public JudgeResult(long id, long solutionId, long testcaseId, String verdict,
-                       String actualOutput, Integer timeMs, Integer memoryKb) {
-        this.id = id;
-        this.solutionId = solutionId;
-        this.testcaseId = testcaseId;
-        this.verdict = verdict;
-        this.actualOutput = actualOutput;
-        this.timeMs = timeMs;
-        this.memoryKb = memoryKb;
-    }
-
     public long getId() {
         return id;
     }

@@ -6,6 +6,8 @@ import com.judgeTool.util.UiAlerts;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
@@ -16,7 +18,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
-import javafx.scene.control.ButtonType;
 
 import java.util.List;
 
@@ -164,11 +165,11 @@ public class ProblemController {
             UiAlerts.info("Chọn một đề để xóa.");
             return;
         }
-        javafx.scene.control.Alert c = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        Alert c = new Alert(Alert.AlertType.CONFIRMATION);
         c.setHeaderText("Xóa đề #" + p.getId() + "?");
         c.setContentText("Mọi testcase, solution và checker liên quan sẽ bị xóa.");
         c.showAndWait().ifPresent(bt -> {
-            if (bt == javafx.scene.control.ButtonType.OK) {
+            if (bt == ButtonType.OK) {
                 try {
                     AppContext.get().database.deleteProblem(p.getId());
                     refresh();

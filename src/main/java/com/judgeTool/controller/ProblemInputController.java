@@ -3,7 +3,6 @@ package com.judgeTool.controller;
 import com.judgeTool.AppContext;
 import com.judgeTool.model.Problem;
 import com.judgeTool.util.UiAlerts;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -14,9 +13,13 @@ import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 
 import java.io.File;
-import java.nio.file.Path;
 
 public class ProblemInputController {
+
+    private static final int DEFAULT_TIME_LIMIT_MS = 1000;
+    private static final int DEFAULT_MEMORY_LIMIT_MB = 256;
+    private static final String DEFAULT_TITLE = "Untitled";
+    private static final String DEFAULT_CONTEST = "other";
 
     @FXML
     private TextArea rawStatement;
@@ -37,8 +40,6 @@ public class ProblemInputController {
     @FXML
     private ProgressIndicator aiProgress;
 
-    private Problem current;
-
     @FXML
     public void initialize() {
         contestCombo.setItems(FXCollections.observableArrayList("IOI", "ICPC", "CF", "other"));
@@ -49,18 +50,29 @@ public class ProblemInputController {
     private void pickImage() {
         FileChooser ch = new FileChooser();
         ch.setTitle("Chọn ảnh đề");
-        ch.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.tif", "*.bmp"));
+        ch.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.tif", "*.bmp", "*.webp"));
         File f = ch.showOpenDialog(rawStatement.getScene().getWindow());
         if (f == null) {
             return;
         }
-        try {
-            String text = AppContext.get().ocr.extractTextFromImage(Path.of(f.toURI()));
-            rawStatement.setText(text);
-        } catch (Exception ex) {
-            UiAlerts.error(ex.getMessage());
-        }
+        aiProgress.setVisible(true);
+        Task<String> task = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                return AppContext.get().ocr.extractTextFromImage(f.toPath());
+            }
+        };
+        task.setOnSucceeded(e -> {
+            aiProgress.setVisible(false);
+            rawStatement.setText(task.getValue());
+        });
+        task.setOnFailed(e -> {
+            aiProgress.setVisible(false);
+            Throwable t = task.getException();
+            UiAlerts.error(t != null ? t.getMessage() : "Lỗi OCR");
+        });
+        new Thread(task, "gemini-ocr").start();
     }
 
     @FXML
@@ -80,12 +92,12 @@ public class ProblemInputController {
         };
         task.setOnSucceeded(e -> {
             aiProgress.setVisible(false);
-            current = task.getValue();
-            applyLimitsFromFields(current);
-            previewTitle.setText(current.getTitle());
-            previewConstraints.setText(current.getConstraints());
-            previewIn.setText(current.getInputFormat());
-            previewOut.setText(current.getOutputFormat());
+            Problem analyzed = task.getValue();
+            applyLimitsFromFields(analyzed);
+            previewTitle.setText(analyzed.getTitle());
+            previewConstraints.setText(analyzed.getConstraints());
+            previewIn.setText(analyzed.getInputFormat());
+            previewOut.setText(analyzed.getOutputFormat());
             UiAlerts.info("Phân tích xong. Kiểm tra preview rồi bấm Lưu vào CSDL.");
         });
         task.setOnFailed(e -> {
@@ -100,31 +112,33 @@ public class ProblemInputController {
         try {
             p.setTimeLimitMs(Integer.parseInt(timeLimit.getText().trim()));
         } catch (NumberFormatException ignored) {
-            p.setTimeLimitMs(1000);
+            p.setTimeLimitMs(DEFAULT_TIME_LIMIT_MS);
         }
         try {
             p.setMemoryLimitMb(Integer.parseInt(memoryLimit.getText().trim()));
         } catch (NumberFormatException ignored) {
-            p.setMemoryLimitMb(256);
+            p.setMemoryLimitMb(DEFAULT_MEMORY_LIMIT_MB);
         }
     }
 
     @FXML
     private void saveDb() {
         try {
+            String title = previewTitle.getText();
+            String contest = contestCombo.getSelectionModel().getSelectedItem();
+
             Problem p = new Problem();
-            p.setTitle(previewTitle.getText() != null && !previewTitle.getText().isBlank() ? previewTitle.getText() : "Untitled");
-            p.setContestType(contestCombo.getSelectionModel().getSelectedItem() != null
-                    ? contestCombo.getSelectionModel().getSelectedItem() : "other");
+            p.setTitle(title != null && !title.isBlank() ? title : DEFAULT_TITLE);
+            p.setContestType(contest != null ? contest : DEFAULT_CONTEST);
             p.setStatement(rawStatement.getText());
             p.setConstraints(previewConstraints.getText());
             p.setInputFormat(previewIn.getText());
             p.setOutputFormat(previewOut.getText());
             applyLimitsFromFields(p);
+
             long id = AppContext.get().database.insertProblem(p);
             p.setId(id);
-            current = p;
-            Platform.runLater(() -> UiAlerts.info("Đã lưu đề #" + id));
+            UiAlerts.info("Đã lưu đề #" + id);
         } catch (Exception ex) {
             UiAlerts.error(ex.getMessage());
         }

@@ -12,17 +12,6 @@ public class Testcase {
     public Testcase() {
     }
 
-    public Testcase(long id, long problemId, String inputData, String expectedOutput,
-                    String caseType, boolean edgeCase, String generatorPrompt) {
-        this.id = id;
-        this.problemId = problemId;
-        this.inputData = inputData;
-        this.expectedOutput = expectedOutput;
-        this.caseType = caseType;
-        this.edgeCase = edgeCase;
-        this.generatorPrompt = generatorPrompt;
-    }
-
     public long getId() {
         return id;
     }

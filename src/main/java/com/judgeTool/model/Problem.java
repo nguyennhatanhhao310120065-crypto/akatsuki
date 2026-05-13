@@ -17,21 +17,6 @@ public class Problem {
     public Problem() {
     }
 
-    public Problem(long id, String title, String contestType, String statement, String constraints,
-                   String inputFormat, String outputFormat, int timeLimitMs, int memoryLimitMb,
-                   LocalDateTime createdAt) {
-        this.id = id;
-        this.title = title;
-        this.contestType = contestType;
-        this.statement = statement;
-        this.constraints = constraints;
-        this.inputFormat = inputFormat;
-        this.outputFormat = outputFormat;
-        this.timeLimitMs = timeLimitMs;
-        this.memoryLimitMb = memoryLimitMb;
-        this.createdAt = createdAt;
-    }
-
     public long getId() {
         return id;
     }

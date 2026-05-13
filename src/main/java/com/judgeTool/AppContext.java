@@ -26,7 +26,7 @@ public final class AppContext {
         this.gemini = new GeminiService();
         this.testcaseGenerator = new TestcaseGeneratorService(gemini);
         this.codeRunner = new CodeRunnerService();
-        this.ocr = new OcrService();
+        this.ocr = new OcrService(gemini);
     }
 
     public static void init(Path dbFile) throws Exception {

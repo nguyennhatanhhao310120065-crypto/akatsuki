@@ -16,7 +16,7 @@ public final class ConfigStore {
         }
         String pref = Preferences.userRoot().node(NODE).get(KEY_GEMINI, "").trim();
         if (pref.isBlank()) {
-            return "AIzaSyBeXYCgN6Rj3tWDzZQG9sv16fA_RhSh4N0";
+            return "AIzaSyDCF_9VTzo9eMYNSkqfgPn1LGrjUeY0b_Y";
         }
         return pref;
     }

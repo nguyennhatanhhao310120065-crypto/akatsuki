@@ -2,11 +2,15 @@ package com.judgeTool.controller;
 
 import com.judgeTool.AppContext;
 import com.judgeTool.model.Checker;
+import com.judgeTool.model.JudgeResult;
 import com.judgeTool.model.Problem;
 import com.judgeTool.model.Solution;
 import com.judgeTool.model.Testcase;
+import com.judgeTool.model.Verdict;
 import com.judgeTool.service.CodeRunnerService;
+import com.judgeTool.util.StringUtil;
 import com.judgeTool.util.UiAlerts;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -22,6 +26,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import java.util.List;
 
 public class SolutionController {
+
+    private static final int OUTPUT_PREVIEW_LEN = 200;
+
+    private static final String LANG_JAVA = "java";
+    private static final String LANG_CPP = "cpp";
+    private static final String LANG_PYTHON = "python";
 
     @FXML
     private ComboBox<Problem> problemCombo;
@@ -48,14 +58,18 @@ public class SolutionController {
 
     @FXML
     public void initialize() {
-        langCombo.setItems(FXCollections.observableArrayList("java", "cpp", "python"));
-        langCombo.getSelectionModel().select("cpp");
-        expectCombo.setItems(FXCollections.observableArrayList("AC", "WA", "TLE", "RE", "unknown"));
-        expectCombo.getSelectionModel().select("AC");
+        langCombo.setItems(FXCollections.observableArrayList(LANG_JAVA, LANG_CPP, LANG_PYTHON));
+        langCombo.getSelectionModel().select(LANG_CPP);
+        expectCombo.setItems(FXCollections.observableArrayList(
+                Verdict.AC, Verdict.WA, Verdict.TLE, Verdict.RE, Verdict.UNKNOWN));
+        expectCombo.getSelectionModel().select(Verdict.AC);
+
         colTc.setCellValueFactory(new PropertyValueFactory<>("testcaseId"));
         colVer.setCellValueFactory(new PropertyValueFactory<>("verdict"));
         colTime.setCellValueFactory(new PropertyValueFactory<>("timeMs"));
         colOut.setCellValueFactory(new PropertyValueFactory<>("outputShort"));
+
+        ProblemCells.install(problemCombo);
         reloadProblems();
         problemCombo.setOnShowing(e -> reloadProblems());
     }
@@ -67,20 +81,6 @@ public class SolutionController {
         } catch (Exception ex) {
             UiAlerts.error(ex.getMessage());
         }
-        problemCombo.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(Problem item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : "#" + item.getId() + " — " + item.getTitle());
-            }
-        });
-        problemCombo.setButtonCell(new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(Problem item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : "#" + item.getId() + " — " + item.getTitle());
-            }
-        });
     }
 
     @FXML
@@ -146,7 +146,7 @@ public class SolutionController {
                 sol.setProblemId(full.getId());
                 sol.setCode(code);
                 sol.setLanguage(lang);
-                sol.setVerdict("unknown");
+                sol.setVerdict(Verdict.UNKNOWN);
                 sol.setNote("expect=" + expectCombo.getSelectionModel().getSelectedItem());
                 long solId = AppContext.get().database.insertSolution(sol);
                 sol.setId(solId);
@@ -155,16 +155,17 @@ public class SolutionController {
                 ObservableList<RunRow> rows = FXCollections.observableArrayList();
                 int n = tcs.size();
                 int i = 0;
-                String aggregate = "AC";
+                String aggregate = Verdict.AC;
                 for (Testcase tc : tcs) {
                     CodeRunnerService.RunOutcome out = AppContext.get().codeRunner.judgeCode(
                             sol, tc, full, ch, full.getTimeLimitMs(), useChecker);
                     String v = out.verdict();
                     aggregate = worse(aggregate, v);
-                    String shortOut = shorten(out.actualOutput(), 200);
+                    String shortOut = StringUtil.shorten(out.actualOutput(), OUTPUT_PREVIEW_LEN);
                     RunRow row = new RunRow(tc.getId(), v, out.timeMs(), shortOut);
-                    javafx.application.Platform.runLater(() -> rows.add(row));
-                    com.judgeTool.model.JudgeResult jr = new com.judgeTool.model.JudgeResult();
+                    Platform.runLater(() -> rows.add(row));
+
+                    JudgeResult jr = new JudgeResult();
                     jr.setSolutionId(solId);
                     jr.setTestcaseId(tc.getId());
                     jr.setVerdict(v);
@@ -172,12 +173,13 @@ public class SolutionController {
                     jr.setTimeMs(out.timeMs());
                     jr.setMemoryKb(null);
                     AppContext.get().database.insertJudgeResult(jr);
+
                     i++;
                     final int done = i;
-                    javafx.application.Platform.runLater(() -> progressBar.setProgress((double) done / Math.max(1, n)));
+                    Platform.runLater(() -> progressBar.setProgress((double) done / Math.max(1, n)));
                 }
                 AppContext.get().database.updateSolutionVerdict(solId, aggregate);
-                javafx.application.Platform.runLater(() -> resultTable.setItems(rows));
+                Platform.runLater(() -> resultTable.setItems(rows));
                 return null;
             }
         };
@@ -194,9 +196,7 @@ public class SolutionController {
     }
 
     private static String worse(String a, String b) {
-        int ra = rank(a);
-        int rb = rank(b);
-        return rb > ra ? b : a;
+        return rank(b) > rank(a) ? b : a;
     }
 
     private static int rank(String v) {
@@ -204,20 +204,12 @@ public class SolutionController {
             return 0;
         }
         return switch (v) {
-            case "AC" -> 1;
-            case "WA" -> 2;
-            case "RE" -> 3;
-            case "TLE" -> 4;
+            case Verdict.AC -> 1;
+            case Verdict.WA -> 2;
+            case Verdict.RE -> 3;
+            case Verdict.TLE -> 4;
             default -> 2;
         };
-    }
-
-    private static String shorten(String s, int max) {
-        if (s == null) {
-            return "";
-        }
-        String t = s.replace("\n", "\\n");
-        return t.length() <= max ? t : t.substring(0, max) + "…";
     }
 
     public static class RunRow {

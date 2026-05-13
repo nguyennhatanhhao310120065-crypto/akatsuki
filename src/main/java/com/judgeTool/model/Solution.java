@@ -14,17 +14,6 @@ public class Solution {
     public Solution() {
     }
 
-    public Solution(long id, long problemId, String code, String language, String verdict, String note,
-                    LocalDateTime createdAt) {
-        this.id = id;
-        this.problemId = problemId;
-        this.code = code;
-        this.language = language;
-        this.verdict = verdict;
-        this.note = note;
-        this.createdAt = createdAt;
-    }
-
     public long getId() {
         return id;
     }

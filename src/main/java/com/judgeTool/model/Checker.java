@@ -9,13 +9,6 @@ public class Checker {
     public Checker() {
     }
 
-    public Checker(long id, long problemId, String checkerCode, String checkerType) {
-        this.id = id;
-        this.problemId = problemId;
-        this.checkerCode = checkerCode;
-        this.checkerType = checkerType;
-    }
-
     public long getId() {
         return id;
     }

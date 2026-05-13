@@ -4,7 +4,9 @@ import com.judgeTool.AppContext;
 import com.judgeTool.model.Problem;
 import com.judgeTool.model.Testcase;
 import com.judgeTool.util.FileUtil;
+import com.judgeTool.util.StringUtil;
 import com.judgeTool.util.UiAlerts;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -24,10 +26,16 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.DirectoryChooser;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
 public class TestcaseController {
+
+    private static final int TC_COUNT_MIN = 1;
+    private static final int TC_COUNT_MAX = 200;
+    private static final int TC_COUNT_DEFAULT = 8;
+    private static final int INPUT_PREVIEW_LEN = 120;
 
     @FXML
     private ComboBox<Problem> problemCombo;
@@ -56,46 +64,24 @@ public class TestcaseController {
 
     @FXML
     public void initialize() {
-        countSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 200, 8));
+        countSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                TC_COUNT_MIN, TC_COUNT_MAX, TC_COUNT_DEFAULT));
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colType.setCellValueFactory(new PropertyValueFactory<>("caseType"));
         colEdge.setCellValueFactory(new PropertyValueFactory<>("edgeCase"));
-        colInPreview.setCellValueFactory(tc -> new javafx.beans.property.SimpleStringProperty(
-                shorten(tc.getValue().getInputData(), 120)));
-        problemCombo.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(Problem item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : "#" + item.getId() + " — " + item.getTitle());
-            }
-        });
-        problemCombo.setButtonCell(new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(Problem item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : "#" + item.getId() + " — " + item.getTitle());
-            }
-        });
+        colInPreview.setCellValueFactory(tc -> new SimpleStringProperty(
+                StringUtil.shorten(tc.getValue().getInputData(), INPUT_PREVIEW_LEN)));
+        ProblemCells.install(problemCombo);
+
         reloadProblems();
         problemCombo.setOnShowing(e -> reloadProblems());
         problemCombo.setOnAction(e -> loadTable());
-        table.getSelectionModel().selectedItemProperty().addListener((o, a, b) -> {
-            if (b != null) {
-                detailArea.setText("INPUT:\n" + nullSafe(b.getInputData()) + "\n\nEXPECTED:\n" + nullSafe(b.getExpectedOutput()));
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (newV != null) {
+                detailArea.setText("INPUT:\n" + StringUtil.nullSafe(newV.getInputData())
+                        + "\n\nEXPECTED:\n" + StringUtil.nullSafe(newV.getExpectedOutput()));
             }
         });
-    }
-
-    private static String nullSafe(String s) {
-        return s == null ? "" : s;
-    }
-
-    private static String shorten(String s, int max) {
-        if (s == null) {
-            return "";
-        }
-        String t = s.replace("\n", "\\n");
-        return t.length() <= max ? t : t.substring(0, max) + "…";
     }
 
     public void reloadProblems() {
@@ -270,7 +256,7 @@ public class TestcaseController {
         }
         DirectoryChooser ch = new DirectoryChooser();
         ch.setTitle("Chọn thư mục export");
-        var dir = ch.showDialog(table.getScene().getWindow());
+        File dir = ch.showDialog(table.getScene().getWindow());
         if (dir == null) {
             return;
         }
@@ -283,8 +269,8 @@ public class TestcaseController {
             List<Testcase> list = AppContext.get().database.listTestcases(p.getId());
             int i = 1;
             for (Testcase t : list) {
-                FileUtil.writeText(inDir.resolve(i + ".in"), nullSafe(t.getInputData()));
-                FileUtil.writeText(outDir.resolve(i + ".out"), nullSafe(t.getExpectedOutput()));
+                FileUtil.writeText(inDir.resolve(i + ".in"), StringUtil.nullSafe(t.getInputData()));
+                FileUtil.writeText(outDir.resolve(i + ".out"), StringUtil.nullSafe(t.getExpectedOutput()));
                 i++;
             }
             UiAlerts.info("Đã export " + list.size() + " cặp file vào:\n" + root);

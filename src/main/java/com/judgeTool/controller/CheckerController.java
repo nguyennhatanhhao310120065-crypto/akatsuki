@@ -37,23 +37,10 @@ public class CheckerController {
         toggleExact.setToggleGroup(modeGroup);
         toggleSpecial.setToggleGroup(modeGroup);
         toggleExact.setSelected(true);
+        ProblemCells.install(problemCombo);
         reloadProblems();
         problemCombo.setOnShowing(e -> reloadProblems());
         problemCombo.setOnAction(e -> loadChecker());
-        problemCombo.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(Problem item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : "#" + item.getId() + " — " + item.getTitle());
-            }
-        });
-        problemCombo.setButtonCell(new javafx.scene.control.ListCell<>() {
-            @Override
-            protected void updateItem(Problem item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : "#" + item.getId() + " — " + item.getTitle());
-            }
-        });
     }
 
     private void reloadProblems() {
@@ -168,12 +155,5 @@ public class CheckerController {
         } catch (Exception ex) {
             UiAlerts.error(ex.getMessage());
         }
-    }
-
-    private static String shorten(String s, int max) {
-        if (s == null) {
-            return "";
-        }
-        return s.length() <= max ? s : s.substring(0, max) + "…";
     }
 }

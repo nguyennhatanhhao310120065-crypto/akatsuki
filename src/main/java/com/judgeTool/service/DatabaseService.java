@@ -6,8 +6,8 @@ import com.judgeTool.model.Problem;
 import com.judgeTool.model.Solution;
 import com.judgeTool.model.Testcase;
 
-import java.io.IOException;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -19,18 +19,25 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class DatabaseService {
+
+    private static final String SCHEMA_RESOURCE = "/db/schema.sql";
+
     private final String jdbcUrl;
 
     public DatabaseService(Path dbFile) {
-        try {
-            Files.createDirectories(dbFile.getParent());
-        } catch (Exception ignored) {
+        Path parent = dbFile.getParent();
+        if (parent != null) {
+            try {
+                Files.createDirectories(parent);
+            } catch (IOException ignored) {
+            }
         }
         this.jdbcUrl = "jdbc:sqlite:" + dbFile.toAbsolutePath().toString().replace('\\', '/');
     }
@@ -50,19 +57,20 @@ public class DatabaseService {
     }
 
     private void runSchema(Connection c) throws SQLException, IOException {
-        try (InputStream in = getClass().getResourceAsStream("/db/schema.sql")) {
+        try (InputStream in = getClass().getResourceAsStream(SCHEMA_RESOURCE)) {
             if (in == null) {
-                throw new IOException("Missing /db/schema.sql on classpath");
+                throw new IOException("Missing " + SCHEMA_RESOURCE + " on classpath");
             }
             String sql = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))
                     .lines()
                     .collect(Collectors.joining("\n"));
             for (String stmt : sql.split(";")) {
                 String t = stmt.trim();
-                if (!t.isEmpty()) {
-                    try (Statement st = c.createStatement()) {
-                        st.execute(t);
-                    }
+                if (t.isEmpty()) {
+                    continue;
+                }
+                try (Statement st = c.createStatement()) {
+                    st.execute(t);
                 }
             }
         }
@@ -328,12 +336,12 @@ public class DatabaseService {
             if (r.getTimeMs() != null) {
                 ps.setInt(5, r.getTimeMs());
             } else {
-                ps.setNull(5, java.sql.Types.INTEGER);
+                ps.setNull(5, Types.INTEGER);
             }
             if (r.getMemoryKb() != null) {
                 ps.setInt(6, r.getMemoryKb());
             } else {
-                ps.setNull(6, java.sql.Types.INTEGER);
+                ps.setNull(6, Types.INTEGER);
             }
             ps.executeUpdate();
         }
